@@ -1,5 +1,5 @@
 #include  <stdio.h>
-#include  "bmpwritter.h"
+#include  "netwritter.h"
 #include  "simplefont.h"
 
 bool saveImage(const BmpWritter & writter, const char* fname)
@@ -12,11 +12,14 @@ bool saveImage(const BmpWritter & writter, const char* fname)
 
 int main()
 {
-    BmpWritter writter;
+    NetWritter writter;
     writter.create(800, 600, BmpWritter::WHITE);
     writter.drawRect(20, 20, 80, 80, BmpWritter::BLACK);
 
     writter.drawString(20, 100, "Hello, world! 123", BmpWritter::BLACK);
+
+
+    writter.drawLayer(20, 140, 80, 80, 200, 200, 3, BmpWritter::BLACK);
 
     saveImage(writter, "out.bmp");
     return 0;

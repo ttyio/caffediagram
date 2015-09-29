@@ -149,6 +149,8 @@ bool BmpWritter::fill(Color bg)
 
 bool BmpWritter::drawPoint(unsigned int x, unsigned int y, Color fg)
 {
+    //printf ("point: (%u, %u)\n", x, y);
+
     if (!m_binary){
         assert(0);
         return false;
@@ -221,7 +223,7 @@ bool BmpWritter::drawRect(unsigned int fromX, unsigned int fromY, unsigned int t
     return true;
 }
 
-bool BmpWritter::drawBitmap(unsigned int width, unsigned int height, unsigned x, unsigned y, const unsigned char* data,Color fg)
+bool BmpWritter::drawBitmap(unsigned int width, unsigned int height, unsigned int x, unsigned int y, const unsigned char* data,Color fg)
 {
     assert(width%8 == 0);
     if (!data){
@@ -242,8 +244,10 @@ bool BmpWritter::drawBitmap(unsigned int width, unsigned int height, unsigned x,
     return true;
 }
 
-bool BmpWritter::drawString(unsigned x, unsigned y, const char* text, Color fg)
+bool BmpWritter::drawString(unsigned int x, unsigned int y, const char* text, Color fg)
 {
+    printf ("string: (%u, %u, \"%s\")\n", x, y, text);
+
     unsigned startX = x;
     for (int i=0; i<(int)strlen(text); ++i){
         drawBitmap(SimpleFont::_WIDTH, SimpleFont::_HEIGHT, startX, y, SimpleFont::getChar(text[i]), fg);
@@ -295,5 +299,40 @@ bool BmpWritter::append(unsigned int heightDelta, Color bg)
 
     // fill the new append binary with color
     fill(fromX, fromY, toX, toY, bg);
+    return true;
+}
+
+bool BmpWritter::drawLine(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY, Color bg)
+{
+    printf ("line: (%u, %u) -> (%u, %u)\n", fromX, fromY, toX, toY);
+
+    if (fromX == toX || fromY == toY){
+        return fill(fromX, fromY, toX, toY, bg);
+    }
+
+    if (std::abs((int)fromX-(int)toX) > std::abs((int)fromY-(int)toY)){
+        float gradient = ((float)((int)toY-(int)fromY))/((int)toX-(int)fromX);
+        if (fromX < toX){
+            for (unsigned int i=fromX; i<=toX; ++i){
+                drawPoint(i, fromY+gradient*(i-fromX), bg);
+            }
+        } else {
+            for (unsigned int i=fromX; i>=toX; --i){
+                drawPoint(i, fromY-gradient*(fromX-i), bg);
+            }
+        }
+    } else {
+        float gradient = ((float)((int)toX-(int)fromX))/((int)toY-(int)fromY);
+        if (fromY < toY){
+            for (unsigned int i=fromY; i<=toY; ++i){
+                drawPoint(fromX+gradient*(i-fromY), i, bg);
+            }
+        } else {
+            for (unsigned int i=fromY; i>=toY; --i){
+                drawPoint(fromX-gradient*(fromY-i), i, bg);
+            }
+        }
+    }
+
     return true;
 }

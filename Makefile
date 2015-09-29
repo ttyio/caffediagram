@@ -34,6 +34,7 @@ INCLUDES +=     \
 
 sources =               \
     bmpwritter.cpp      \
+    netwritter.cpp      \
     simplefont.cpp      \
     main.cpp            \
 

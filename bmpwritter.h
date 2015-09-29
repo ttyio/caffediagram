@@ -32,22 +32,23 @@ public:
     bool    drawPoint(unsigned int x, unsigned int y, Color fg);
     bool    drawRect(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY, Color fg);
     bool    append(unsigned int heightDelta, Color bg);
-    bool    drawBitmap(unsigned int width, unsigned int height, unsigned x, unsigned y, const unsigned char* data,Color fg);
-    bool    drawString(unsigned x, unsigned y, const char* text, Color fg);
+    bool    drawBitmap(unsigned int width, unsigned int height, unsigned int x, unsigned int y, const unsigned char* data,Color fg);
+    bool    drawString(unsigned int x, unsigned int y, const char* text, Color fg);
+    bool    drawLine(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY, Color bg);
 
-    size_t    size() const;
-    const char*   binary() const;
-    void    clear();   
+    size_t          size() const;
+    const char*     binary() const;
+    void            clear();   
     unsigned int    pointSize() const;
-    bool    empty() const;
+    bool            empty() const;
     unsigned int    width() const;
     unsigned int    height() const;
 
 protected:
-    size_t    getSizeWithoutPadding(unsigned int widthInPixel, unsigned int heightInPixel) const;
+    size_t          getSizeWithoutPadding(unsigned int widthInPixel, unsigned int heightInPixel) const;
     unsigned int    getLinePadding(unsigned int widthInPixel) const;
-    bool    fillRect(size_t yminInPixel, size_t ymaxInPixel, size_t xminInPixel, size_t xmaxInPixel, Color clr);
-    bool    updateSizeInHeader(unsigned int bmpSiz, unsigned int widthInPixel, unsigned int heighInPixel);
+    bool            fillRect(size_t yminInPixel, size_t ymaxInPixel, size_t xminInPixel, size_t xmaxInPixel, Color clr);
+    bool            updateSizeInHeader(unsigned int bmpSiz, unsigned int widthInPixel, unsigned int heighInPixel);
     unsigned int    pointCordToPixelCord(unsigned int cord) const;
     unsigned int    pixelSize() const;
     unsigned int    headerSize() const;
