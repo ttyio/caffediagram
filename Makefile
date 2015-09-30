@@ -1,6 +1,5 @@
 GXX    ?= g++
 
-CXXFLAGS += -Wall 
 CXXFLAGS += -fvisibility=hidden
 
 ifeq ($(dbg), 1)
@@ -37,6 +36,9 @@ sources =               \
     netwritter.cpp      \
     simplefont.cpp      \
     main.cpp            \
+    parser_y.cpp        \
+    parser_l.cpp        \
+    nnet.cpp            \
 
 
 objects = $(patsubst %.cpp, $(target_dir)/%.o, $(notdir $(sources)))
