@@ -1,6 +1,9 @@
 #include  <stdio.h>
 #include  "netwritter.h"
 #include  "simplefont.h"
+#include  "nnet.h"
+
+int parse(const char* filename, NNet* pNNetOut);
 
 bool saveImage(const BmpWritter & writter, const char* fname)
 {
@@ -22,5 +25,9 @@ int main()
     writter.drawLayer(20, 140, 80, 80, 200, 200, 3, BmpWritter::BLACK);
 
     saveImage(writter, "out.bmp");
+
+    printf("INFO: start parser test\n");
+    NNet nnet;
+    parse("/mnt/data/code/DeconvNet/net/flow_fcn/train_test.prototxt", &nnet);
     return 0;
 }
