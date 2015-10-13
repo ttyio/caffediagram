@@ -5,12 +5,33 @@
 #include <set>
 #include <map>
 
+#define LAYER_SINGLE_ATTRI_LIST(_MACRO)         \
+    _MACRO(name)                                \
+    _MACRO(type)                                \
+
+#define LAYER_MULTI_ATTRI_LIST(_MACRO)          \
+    _MACRO(top)                                 \
+    _MACRO(bottom)                              \
+
+#define DEF_SINGLE_ATTRI(_NAME)                 \
+    std::string                             m_##_NAME;
+
+#define DEF_MULTI_ATTRI(_NAME)                  \
+    std::set<std::string>                   m_##_NAME;
+
+#define DECLARE_MULTI_FIND(_NAME)                             \
+Layer* find##_NAME(const char* name);                         \
+
+
 struct Layer{
-    std::string                             m_type;
-    std::string                             m_name;
-    std::set<std::string>                   m_tops;
-    std::set<std::string>                   m_bottoms;
+    Layer();
+    ~Layer();
+
+    LAYER_SINGLE_ATTRI_LIST(DEF_SINGLE_ATTRI);
+    LAYER_MULTI_ATTRI_LIST(DEF_MULTI_ATTRI);
+
     std::map<std::string, std::string>      m_attribs;
+    Layer* m_next;
 };
 
 
@@ -23,10 +44,18 @@ public:
     bool endLayer();
     bool setAttri(int level, const char* curAttriBlock, const char* attri, const char* value);
 
+protected:
+    void onSetGlobalAttri(const char* attri, const char* value);
+    void onSetLayerAttri(const char* attri, const char* value);
+    void onSetLayerParamAttri(const char* curParamGroup, const char* attri, const char* value);
+
+private:
+    LAYER_MULTI_ATTRI_LIST(DECLARE_MULTI_FIND);
+
 private:
     Layer*                                  m_curLayer;
     std::map<std::string, Layer*>           m_layers;
-    std::map<std::string, std::string>      m_attribs;
+    std::map<std::string, std::string>      m_globalAttribs;
 };
 
 
