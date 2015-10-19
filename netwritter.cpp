@@ -4,7 +4,7 @@
 #include    "simplefont.h"
 
 
-bool NetWritter::drawLayer(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned w, unsigned h, unsigned c, Color fg)
+bool NetWritter::drawLayer(const char* name, unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned w, unsigned h, unsigned c, Color fg)
 {
     int gradientMargin = width/4;
     int OFF = 4;
@@ -32,14 +32,30 @@ bool NetWritter::drawLayer(unsigned int x, unsigned int y, unsigned int width, u
 
     char buf[10];
 
-    sprintf(buf, "%u", w);
-    drawString(startX+width/3, startY-layerMargin, buf, fg);
+    if (w){
+        sprintf(buf, "%u", w);
+        drawString(startX+width/3, startY-layerMargin, buf, fg);
+    }
 
-    sprintf(buf, "%u", h);
-    drawString(startX+width, startY-height/2, buf, fg);
+    if (h){
+        sprintf(buf, "%u", h);
+        drawString(startX+width, startY-height/2, buf, fg);
+    }
 
-    sprintf(buf, "%u", c);
-    drawString(startX+gradientMargin+width, startY-height-SimpleFont::_HEIGHT, buf, fg);
+    if (c){
+        sprintf(buf, "%u", c);
+        drawString(startX+gradientMargin+width, startY-height-SimpleFont::_HEIGHT, buf, fg);
+    }
 
+    if (name){
+        char* newname = strdup(name);
+        if (strlen(newname) > 8){
+            newname[5] = '.';
+            newname[6] = '.';
+            newname[7] = '\0';
+        }
+        drawString(x, y+height+layerMargin, newname, fg);
+        free(newname);
+    }
     return true;
 }

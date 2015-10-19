@@ -336,3 +336,13 @@ bool BmpWritter::drawLine(unsigned int fromX, unsigned int fromY, unsigned int t
 
     return true;
 }
+
+bool BmpWritter::saveImage(const char* fname)
+{
+    FILE* fd = fopen(fname, "w");
+    fwrite(binary(), 1, size(), fd);
+    fclose(fd);
+    return true;
+}
+
+

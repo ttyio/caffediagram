@@ -36,6 +36,8 @@ public:
     bool    drawString(unsigned int x, unsigned int y, const char* text, Color fg);
     bool    drawLine(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY, Color bg);
 
+    bool    saveImage(const char* fname);
+
     size_t          size() const;
     const char*     binary() const;
     void            clear();   

@@ -11,7 +11,7 @@ class NetWritter
     };
 
 public:
-    bool drawLayer(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned w, unsigned h, unsigned c, Color fg);
+    bool drawLayer(const char* name, unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned w, unsigned h, unsigned c, Color fg);
 
     bool drawCube(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned w, unsigned h, unsigned c);
 

@@ -30,6 +30,10 @@ struct Layer{
     LAYER_SINGLE_ATTRI_LIST(DEF_SINGLE_ATTRI);
     LAYER_MULTI_ATTRI_LIST(DEF_MULTI_ATTRI);
 
+    unsigned int w();
+    unsigned int h();
+    unsigned int c();
+
     std::map<std::string, std::string>      m_attribs;
     Layer* m_next;
 };
@@ -43,6 +47,8 @@ public:
     bool beginLayer();
     bool endLayer();
     bool setAttri(int level, const char* curAttriBlock, const char* attri, const char* value);
+
+    void draw(const char* fname);
 
 protected:
     void onSetGlobalAttri(const char* attri, const char* value);
