@@ -2,6 +2,7 @@
 #include  <string.h>
 #include  <set>
 #include  <assert.h>
+#include  <stdlib.h>
 #include  "nnet.h"
 
 Layer::Layer()
@@ -18,24 +19,62 @@ Layer::~Layer()
     }
 }
 
-unsigned int Layer::w()
+bool Layer::calcInputDim(unsigned& width, unsigned& height, unsigned& channel)
 {
-    return 0;
+    std::map<std::string, std::map<std::string, std::string> >::const_iterator citer = m_paramAttribs.find("convolution_param");
+    if (citer != m_paramAttribs.end()){
+        std::map<std::string, std::string>::const_iterator attriIter = citer->second.find("num_output");
+        if (attriIter != citer->second.end()){
+            channel = atoi(attriIter->second.c_str());
+        }
+        attriIter = citer->second.find("kernel_size");
+        if (attriIter != citer->second.end()){
+            if (strcmp(m_type.c_str(), "CONVOLUTION") == 0){
+                width -= atoi(attriIter->second.c_str())/2*2;
+                height -= atoi(attriIter->second.c_str())/2*2;
+            } else if (strcmp(m_type.c_str(), "DECONVOLUTION") == 0){
+                width += atoi(attriIter->second.c_str())/2*2;
+                height += atoi(attriIter->second.c_str())/2*2;
+            }
+        }
+        attriIter = citer->second.find("pad");
+        if (attriIter != citer->second.end()){
+            if (strcmp(m_type.c_str(), "CONVOLUTION") == 0){
+                width += atoi(attriIter->second.c_str())*2;
+                height += atoi(attriIter->second.c_str())*2;
+            } else if (strcmp(m_type.c_str(), "DECONVOLUTION") == 0){
+                width -= atoi(attriIter->second.c_str())*2;
+                height -= atoi(attriIter->second.c_str())*2;
+            }
+        }
+
+    }
+
+    citer = m_paramAttribs.find("pooling_param");
+    if (citer != m_paramAttribs.end()){
+        std::map<std::string, std::string>::const_iterator attriIter = citer->second.find("kernel_size");
+        if (attriIter != citer->second.end()){
+            width /= atoi(attriIter->second.c_str());
+            height /= atoi(attriIter->second.c_str());
+        }
+    }
+
+    citer = m_paramAttribs.find("unpooling_param");
+    if (citer != m_paramAttribs.end()){
+        std::map<std::string, std::string>::const_iterator attriIter = citer->second.find("kernel_size");
+        if (attriIter != citer->second.end()){
+            width *= atoi(attriIter->second.c_str());
+            height *= atoi(attriIter->second.c_str());
+        }
+    }
 }
 
-unsigned int Layer::h()
-{
-    return 0;
-}
-
-unsigned int Layer::c()
-{
-    return 0;
-}
-
-NNet::NNet()
+NNet::NNet(unsigned nWidth, unsigned nHeight, unsigned nChannel)
     :m_curLayer(NULL)
 {
+    g_inputWidth = nWidth;
+    g_inputHeight = nHeight;
+    g_inputChannel = nChannel;
 }
 
 NNet::~NNet()
@@ -160,6 +199,17 @@ void NNet::onSetLayerParamAttri(const char* curParamGroup, const char* attri, co
             }
         }
     }
+
+    if (m_curLayer){
+        std::map<std::string, std::map<std::string, std::string> >::iterator iter = m_curLayer->m_paramAttribs.find(curParamGroup);
+        if (iter == m_curLayer->m_paramAttribs.end()){
+            std::map<std::string, std::string> tmpMap;
+            tmpMap[attri] = value;
+            m_curLayer->m_paramAttribs.insert(make_pair((std::string)curParamGroup, tmpMap));
+        } else {
+            iter->second[attri] = value;
+        }
+    }
 }
 
 #define DEF_MULTI_FIND(_NAME)                                       \
@@ -191,16 +241,35 @@ LAYER_MULTI_ATTRI_LIST(DEF_MULTI_FIND);
 
 void NNet::draw(const char* fname)
 {
+    int nCanvasWidth = 0;
+    int nCanvasHeight = 0;
+    draw(fname, nCanvasWidth, nCanvasHeight);
+    draw(fname, nCanvasWidth, nCanvasHeight);
+}
+
+void NNet::draw(const char* fname, int& nCanvasWidth, int& nCanvasHeight)
+{
     NetWritter writter;
     int nTotal = m_layers.size();
     int nElementHeight = LAYER_HEIGHT*1.5;
     int nElementWidth = LAYER_WIDTH*1.1;
-    int nCanvasWidth = nTotal * (nElementWidth+LAYER_MARGIN_HOR);
-    int nCanvasHeight = MAX_LAYER_PER_COL*(nElementHeight+LAYER_MARGIN_VER*2);
+    if (!nCanvasWidth){
+        nCanvasWidth = nTotal * (nElementWidth+LAYER_MARGIN_HOR);
+    }
+    if (!nCanvasHeight){ 
+        nCanvasHeight = MAX_LAYER_PER_COL*(nElementHeight+LAYER_MARGIN_VER*2);
+    }
     writter.create(nCanvasWidth, nCanvasHeight, BmpWritter::WHITE);
     int nPosX = LAYER_MARGIN_HOR;
     int nPosY = LAYER_MARGIN_VER;
 
+    unsigned maxHoriLayer = 0;
+    unsigned maxVertLayer = 0;
+    unsigned nVertLayer = 0;
+
+    unsigned width = g_inputWidth;
+    unsigned height = g_inputHeight;
+    unsigned channel = g_inputChannel;
     std::set<std::string> completeLayers;
     // draw input
     for (std::map<std::string, Layer*>::iterator iter = m_layers.begin(); iter!=m_layers.end(); ++iter){
@@ -208,11 +277,16 @@ void NNet::draw(const char* fname)
         assert(layer);
         if (layer->m_bottom.empty()){
             printf("draw %s\n", layer->m_name.c_str());
-            writter.drawLayer(layer->m_name.c_str(), nPosX, nPosY, LAYER_WIDTH, LAYER_HEIGHT, 0, 0, 0, BmpWritter::BLACK);
+            layer->calcInputDim(width, height, channel);
+            writter.drawLayer(layer->m_name.c_str(), nPosX, nPosY, LAYER_WIDTH, LAYER_HEIGHT, width, height, channel, BmpWritter::BLACK);
             nPosY += nElementHeight;
             completeLayers.insert(layer->m_name);
+            ++nVertLayer;
         }
     }
+    maxVertLayer = maxVertLayer>nVertLayer?maxVertLayer:nVertLayer;
+    nVertLayer = 0;
+    ++maxHoriLayer;
 
     // draw successor
     int nLastCount = 0;
@@ -261,17 +335,28 @@ void NNet::draw(const char* fname)
                 }
             }
 
-            writter.drawLayer(name.c_str(), nPosX, nPosY, LAYER_WIDTH, LAYER_HEIGHT, layer->w(), layer->h(), layer->c(), BmpWritter::BLACK);
+            layer->calcInputDim(width, height, channel);
+            writter.drawLayer(name.c_str(), nPosX, nPosY, LAYER_WIDTH, LAYER_HEIGHT, width, height, channel, BmpWritter::BLACK);
             namesThisLayer.insert(layer->m_name);
             namesThisLayer.insert(layer->m_top.begin(), layer->m_top.end());
+            ++nVertLayer;
             nPosY += nElementHeight;
         }
+
+        maxVertLayer = maxVertLayer>nVertLayer?maxVertLayer:nVertLayer;
+        nVertLayer = 0;
+        ++maxHoriLayer;
+
         completeLayers.insert(namesThisLayer.begin(), namesThisLayer.end());
         if (completeLayers.size() == nLastCount){
             break;
         }
         nLastCount = completeLayers.size();
     }
+
+    nCanvasWidth = maxHoriLayer * (nElementWidth+LAYER_MARGIN_HOR);
+    nCanvasHeight = maxVertLayer * (nElementHeight+LAYER_MARGIN_VER*2);
+    
     printf("Complete names:\n");
     for (std::map<std::string, Layer*>::iterator iter = m_layers.begin(); iter!=m_layers.end(); ++iter){
         Layer* layer = iter->second;

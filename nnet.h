@@ -30,18 +30,18 @@ struct Layer{
     LAYER_SINGLE_ATTRI_LIST(DEF_SINGLE_ATTRI);
     LAYER_MULTI_ATTRI_LIST(DEF_MULTI_ATTRI);
 
-    unsigned int w();
-    unsigned int h();
-    unsigned int c();
+    bool calcInputDim(unsigned& width, unsigned& height, unsigned& channel);
 
-    std::map<std::string, std::string>      m_attribs;
+    std::map<std::string, std::string>                              m_attribs;
+    std::map<std::string, std::map<std::string, std::string> >      m_paramAttribs;
     Layer* m_next;
+
 };
 
 
 class NNet{
 public:
-    NNet();
+    NNet(unsigned nWidth, unsigned nHeight, unsigned nChannel);
     ~NNet();
 
     bool beginLayer();
@@ -55,6 +55,8 @@ protected:
     void onSetLayerAttri(const char* attri, const char* value);
     void onSetLayerParamAttri(const char* curParamGroup, const char* attri, const char* value);
 
+    void draw(const char* fname, int& nCanvasWidth, int& nCanvasHeight);
+
 private:
     LAYER_MULTI_ATTRI_LIST(DECLARE_MULTI_FIND);
 
@@ -62,6 +64,10 @@ private:
     Layer*                                  m_curLayer;
     std::map<std::string, Layer*>           m_layers;
     std::map<std::string, std::string>      m_globalAttribs;
+
+    unsigned g_inputWidth;
+    unsigned g_inputHeight;
+    unsigned g_inputChannel;
 };
 
 
